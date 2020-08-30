@@ -21,21 +21,21 @@ namespace TestProject
             //The helper class is just to mock what we have in production
             // Other test methods use this helper class and do not care if ConsoleStop gets called.
 
-                Process testProcess = ProcHelper.StartProcess();
+            Process testProcess = ProcHelper.StartProcess();
 
-                //simulate delay of the process spinning up
-                await Task.Delay(TimeSpan.FromSeconds(3));
+            //simulate delay of the process spinning up
+            await Task.Delay(TimeSpan.FromSeconds(3));
 
-                while (!testProcess.HasExited)
-                {
-                    //keep sending input to the process until it closes
-                    ProcHelper.ProcessInput.WriteLine();
-                }
-                testProcess.WaitForExit();
+            while (!testProcess.HasExited)
+            {
+                //keep sending input to the process until it closes
+                ProcHelper.ProcessInput.WriteLine();
+            }
+            testProcess.WaitForExit();
 
-                await Task.Delay(TimeSpan.FromSeconds(3));
+            await Task.Delay(TimeSpan.FromSeconds(3));
 
-                Assert.IsTrue(1 == 1);
+            Assert.IsTrue(1 == 1);
 
             #endregion
 
