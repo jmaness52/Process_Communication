@@ -25,6 +25,7 @@ namespace TestProject
             returnProc.StartInfo.UseShellExecute = false;
             returnProc.StartInfo.RedirectStandardError = true;
             returnProc.StartInfo.RedirectStandardOutput = true;
+            returnProc.StartInfo.CreateNoWindow = true;
 
             //This was added by me,  before we did not redirect standard input
             returnProc.StartInfo.RedirectStandardInput = true;

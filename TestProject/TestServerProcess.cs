@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using ServerProcess;
@@ -17,60 +18,61 @@ namespace TestProject
             #region ChildProcessApproach
             // This is the approach our existing integration tests use
 
-            ////The helper class is just to mock what we have in production
-            //// Other test methods use this helper class and do not care if ConsoleStop gets called.
+            //The helper class is just to mock what we have in production
+            // Other test methods use this helper class and do not care if ConsoleStop gets called.
 
-            // Process testProcess = ProcHelper.StartProcess();
+                Process testProcess = ProcHelper.StartProcess();
 
-            // //simulate delay of the process spinning up
-            // await Task.Delay(TimeSpan.FromSeconds(3));
+                //simulate delay of the process spinning up
+                await Task.Delay(TimeSpan.FromSeconds(3));
 
-            // //Want to write an input of "enter" to the process - this does work intermittently :(
-            // ProcHelper.ProcessInput.WriteLine();
-            // ProcHelper.ProcessInput.Close();
+                while (!testProcess.HasExited)
+                {
+                    //keep sending input to the process until it closes
+                    ProcHelper.ProcessInput.WriteLine();
+                }
+                testProcess.WaitForExit();
 
-            // await Task.Delay(TimeSpan.FromSeconds(3));
+                await Task.Delay(TimeSpan.FromSeconds(3));
 
-            // testProcess.Kill();
-
-            // Assert.IsTrue(1 == 1);
+                Assert.IsTrue(1 == 1);
 
             #endregion
 
 
             #region AppDomainApproach
 
-            //This is the approach I tried when working with FakeTaskManager directly
-            try
-            {
-                //Initially I thought this wasn't working because FakeTaskManager is internal. However, it looks like I just can't load the assembly
-                //into the child appDomain
+            ////This is the approach I tried when working with FakeTaskManager directly
+            //try
+            //{
+            //    //Initially I thought this wasn't working because FakeTaskManager is internal. However, it looks like I just can't load the assembly
+            //    //into the child appDomain
 
-                //AppDomainSetup setup = new AppDomainSetup();
-                //setup.ApplicationBase = "../ServerProcess";
+            //    //AppDomainSetup setup = new AppDomainSetup();
+            //    //setup.ApplicationBase = "../ServerProcess";
 
-                AppDomain newDomain = AppDomain.CreateDomain("newDomain", null, AppDomain.CurrentDomain.SetupInformation);
+            //    AppDomain newDomain = AppDomain.CreateDomain("newDomain", null, AppDomain.CurrentDomain.SetupInformation);
 
-                string assemblyName = typeof(FakeTaskManager).Assembly.FullName;
+            //    string assemblyName = typeof(FakeTaskManager).Assembly.FullName;
 
-                FakeTaskManager fakeTM = newDomain.CreateInstanceFromAndUnwrap(assemblyName, typeof(FakeTaskManager).Name) as FakeTaskManager;
+            //    FakeTaskManager fakeTM = newDomain.CreateInstanceFromAndUnwrap(assemblyName, typeof(FakeTaskManager).Name) as FakeTaskManager;
 
-                Assert.IsNotNull(fakeTM);
+            //    Assert.IsNotNull(fakeTM);
 
-                fakeTM.ConsoleStart(new string[] { "args" });
+            //    fakeTM.ConsoleStart(new string[] { "args" });
 
-                await Task.Delay(TimeSpan.FromSeconds(3));
+            //    await Task.Delay(TimeSpan.FromSeconds(3));
 
-                fakeTM.ConsoleStop();
-            }
-            catch (FileNotFoundException ex)
-            {
-                Console.WriteLine(ex.Message);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-            }
+            //    fakeTM.ConsoleStop();
+            //}
+            //catch (FileNotFoundException ex)
+            //{
+            //    Console.WriteLine(ex.Message);
+            //}
+            //catch (Exception ex)
+            //{
+            //    Console.WriteLine(ex.Message);
+            //}
 
             #endregion
         }
